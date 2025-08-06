@@ -1,8 +1,13 @@
-#include <lexer.hpp>
+#include "lexer.hpp"
 #include <iostream>
 
 
-static Token getNextToken() {
+Token CurTok;
+std::string IdentifierStr;
+double NumVal;
+
+
+Token getNextToken() {
   return CurTok = gettok();
 }
 
@@ -13,7 +18,7 @@ Token gettok() {
     while (isspace(LastChar))
         LastChar = getchar();
 
-    if (isalpha(LastChar = getchar())) {
+    if (isalpha(LastChar)) {
         IdentifierStr = LastChar;
         while (isalnum(LastChar = getchar()))
             IdentifierStr += LastChar;
@@ -52,7 +57,7 @@ Token gettok() {
     int ThisChar = LastChar;
     LastChar = getchar();
 
-    switch (LastChar) {
+    switch (ThisChar) {
     case '+':
         return Token::tok_plus;
     case '-':

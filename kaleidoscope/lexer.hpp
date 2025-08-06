@@ -28,10 +28,12 @@ enum class Token {
 /// Gets the next token
 Token gettok();
 
-static Token CurTok;
+/// Updates CurTok to the next token
 Token getNextToken();
 
-static std::string IdentifierStr;
-static double NumVal;
+extern std::string IdentifierStr;
+extern double NumVal;
+extern Token CurTok;
+
 
 #endif
