@@ -4,6 +4,24 @@
 #include <vector>
 
 
+#include <array>
+
+static constexpr std::array<std::pair<Token, int>, 4> BinopPrecedence = {{
+    { Token::tok_less_than, 10 },
+    { Token::tok_plus, 20 },
+    { Token::tok_minus, 20 },
+    { Token::tok_mul, 40 }
+}};
+
+static int GetTokPrecedence() {
+    for (const auto& entry : BinopPrecedence) {
+        if (entry.first == CurTok) {
+            return entry.second;
+        }
+    }
+    return -1;
+}
+
 
 std::unique_ptr<ExprAST> LogError(const char *Str) {
     fprintf(stderr, "Error: %s\n", Str);
@@ -77,4 +95,53 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
     }
 }
 
-static std::unique_ptr<ExprAST> ParseExpression();
+static std::unique_ptr<ExprAST> ParseExpression() {
+    auto LHS = ParsePrimary();
+    if (!LHS) return nullptr;
+
+    return ParseBinOpRHS(0, std::move(LHS));
+}
+
+
+static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS) {
+    while (true) {
+        int TokPrec = GetTokPrecedence();
+
+        if (TokPrec < ExprPrec) return LHS;
+        Token BinOp = CurTok;
+        getNextToken();
+        auto RHS = ParsePrimary();
+        if (!RHS) return nullptr;
+
+        int NextPrec = GetTokPrecedence();
+        if (TokPrec < NextPrec) {
+            RHS = ParseBinOpRHS(TokPrec + 1, std::move(RHS));
+            if (!RHS) return nullptr;
+        }
+
+        LHS = std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
+
+    }
+}
+
+static std::unique_ptr<PrototypeAST> ParsePrototype() {
+    if (CurTok != Token::tok_identifier) {
+        return LogErrorP("Expected function name in prototype.");
+    }
+
+    std::string FnName = IdentifierStr;
+    getNextToken();
+
+    if (CurTok != Token::tok_lparen) {
+        return LogErrorP("Exoected ')' in prototype");
+    }
+
+    std::vector<std::string> Parameters;
+    while (getNextToken() == Token::tok_identifier) {
+        Parameters.push_back(IdentifierStr);
+        if (CurTok != Token::tok_rparen) {
+            return LogErrorP("Expected ')' in prototype");
+        }
+    }
+    return std::make_unique<PrototypeAST>(FnName, IdentifierStr);
+}
