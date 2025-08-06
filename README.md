@@ -1,0 +1,1 @@
+This is my work following the [LLVM Kaleidoscope Tutorial](https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl01.html#id1). The code is not my own, being coppied from the tutorial. 
